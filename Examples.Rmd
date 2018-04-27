@@ -1,0 +1,118 @@
+---
+title: "Examples"
+author: "Ivan Grahek"
+date: "27 april 2018"
+output: html_document
+code_folding: hide
+---
+
+Importing data
+
+```{r, message = F,warning=F}
+# Data from Vonesh & Bolker, 2005, Ecology
+library(rethinking)
+data(reedfrogs)
+data =  reedfrogs
+# Detach the rethinking package, we only needed it to get the data
+detach(package:rethinking, unload = T)
+```
+
+Check out how the data looks like
+
+```{r, message = F, warning = F}
+library(tidyverse)
+data %>%
+  glimpse()
+```
+
+Add the variable tank (each row is a different tank)
+
+```{r, message = F, warning = F}
+data = 
+  data %>%
+  #mutate(tank = rep(1:12, each = 4))
+  mutate(tank = 1:nrow(data))
+```
+
+Plot the data
+
+```{r, message = F, warning = F}
+library("yarrr")
+
+  pirateplot(formula = propsurv ~ pred + density, # dependent~independent variables
+             data=data, # data frame
+             main="", # main title
+             xlim=NULL, # x-axis: limits
+             xlab="", # x-axis: label
+             ylim=c(0,1.2), # y-axis: limits
+             ylab="Proportion of survival", # y-axis: label
+             inf.method="hdi", # type of inference: 95% Bayesian Highest Density Intervals
+             hdi.iter=5000, # number of iterations for estimation of HDI
+             inf.within=tank, # ID variable
+             theme=0, # preset theme (0: use your own)
+             # theme settings
+             # pal="xman", # color palette [see piratepal(palette="all")]
+             point.col="black", # points: color
+             point.o=.3, # points: opacity (0-1)
+             avg.line.col="black", # average line: color
+             avg.line.lwd=2, # average line: line width
+             avg.line.o=1, # average line: opacity (0-1)
+             bar.b.col=NULL, # bars, border: color
+             bar.lwd=0, # bars, border: line width
+             bar.b.o=0, # bars, border: opacity (0-1)
+             bar.f.col=NULL, # bars, filling: color
+             bar.f.o=0, # bars, filling: opacity (0-1)
+             inf.b.col="black", # inference band, border: color
+             inf.lwd=0.1, # inference band, border: line width
+             inf.b.o=1, # inference band, border: opacity (0-1)
+             inf.f.col="black", # inference band, filling: color
+             inf.f.o=0, # inference band, filling: opacity (0-1)
+             bean.b.col="black", # bean border, color
+             bean.lwd=0.6, # bean border, line width
+             bean.lty=1, # bean border, line type (1: solid; 2:dashed; 3: dotted; ...)
+             bean.b.o=0.3, # bean border, opacity (0-1)
+             bean.f.col="gray", # bean filling, color
+             bean.f.o=.1, # bean filling, opacity (0-1)
+             cap.beans=TRUE, # max and min values of bean densities are capped at the limits found in the data
+             # quant=c(.1,.9), # quantiles (e.g., 10th and 90th)
+             # quant.col="black", # quantiles, line: color
+             # quant.length=.7, # quantiles, horizontal line length
+             # quant.lwd=2, # quantiles, line width
+             sortx="sequential",
+             gl.col="gray", # gridlines: color
+             gl.lwd=c(.75,0), # gridlines: line width
+             gl.lty=2, # gridlines: line type (1: solid; 2:dashed; 3: dotted; ...)
+             cex.lab=0.8, # axis labels: size
+             cex.axis=1, # axis numbers: size
+             bty="l", # plot box type
+             back.col="white") # background, color
+```
+
+Run an ANOVA
+
+```{r, message = F, warning = F}
+library("ez")
+library("schoRsch")
+ANOVA.propsurv = ezANOVA(data=data,dv=.(propsurv),wid=.(tank),between=.(pred,density),detailed=TRUE,type=3)
+ANOVA.propsurv = anova_out(ANOVA.propsurv,etasq="partial",print=TRUE)
+```
+
+Compare models with lme
+
+```{r, message = F, warning = F}
+library("lme4")
+
+model.null = lm(propsurv ~ 0 , data)
+model.pred = lm(propsurv ~ pred, data)
+model.density = lm(propsurv ~ density, data)
+model.twomaineffects = lm(propsurv ~ pred + density, data)
+model.full = lm(propsurv ~ pred * density, data)
+
+anova(model.full)
+summary(model.full)
+
+
+anova(model.null, model.pred, model.density, model.full) #model.twomaineffects, 
+summary(model.density)
+
+```
