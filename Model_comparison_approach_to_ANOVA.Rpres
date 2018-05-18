@@ -22,9 +22,23 @@ Simple regression
 incremental: true
 type: lineheight
 
+$$\large y = \beta_0$$
+
 $$\large y = \beta_0 + \beta_1 * x$$
 
+Parameters of a linear model: 
+- Intercept  
+- Slope
 
+Our first goal is always to estimate parameters
+
+How do we write that in R?
+
+```{r, message = FALSE, eval=FALSE} 
+model1 = lm(y ~ 1)
+
+model12 = lm(y ~ 1 + x)
+```
 
 Let's get some data
 ========================================================
@@ -50,12 +64,12 @@ A simple scatterplot
 plot(wt, mpg, main="Fascinating data", xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
 ```
 
-Fitting the simplest line
+Fitting the simplest line 
 ========================================================
 incremental: true
 type: lineheight
 
-Fitting a straight line through data
+$$\large y = \beta_0$$
 
 ```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
 model = lm(mpg ~ 1, data = mtcars)
@@ -65,12 +79,12 @@ plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon
 abline(model, col="red") # plot the mean
 ```
 
-How many lies around the line?
+How many lies around the line? 
 ========================================================
 incremental: true
 type: lineheight
 
-Residuals
+$$\large y = \beta_0$$
 
 ```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
 model = lm(mpg ~ 1, data = mtcars)
@@ -82,6 +96,38 @@ abline(model, col="red") # plot the mean
 res = signif(residuals(model), 5)
 pre = predict(model) # plot distances between points and the regression line
 segments(wt, mpg, wt, pre, col="red")
+
+```
+
+What does our model think? 
+========================================================
+incremental: true
+type: lineheight
+
+$$\large y = \beta_0$$
+
+```{r, message = FALSE} 
+model = lm(mpg ~ 1, data = mtcars)
+  
+summary(model)
+```
+
+How much does our model miss? 
+========================================================
+incremental: true
+type: lineheight
+
+$$\large y = \beta_0$$
+
+```{r, message = FALSE} 
+model = lm(mpg ~ 1, data = mtcars)
+
+d$predicted <- predict(model)   # Save the predicted values
+d$residuals <- residuals(model) # Save the residual values
+
+# Quick look at the actual, predicted, and residual values
+library(tidyverse)
+d %>% select(mpg, predicted, residuals) %>% sample_n(10)
 
 ```
 
@@ -90,9 +136,12 @@ Fitting the second simplest line
 incremental: true
 type: lineheight
 
-Fitting a straight line through data
+$$\large y = \beta_0 + \beta_1 * x$$
 
 ```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
+attach(mtcars)
+d = mtcars
+
 model = lm(mpg ~ 1 + wt, data = mtcars)
   
 plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
@@ -105,7 +154,7 @@ How many lies around the line?
 incremental: true
 type: lineheight
 
-Residuals
+$$\large y = \beta_0 + \beta_1 * x$$
 
 ```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
 model = lm(mpg ~ 1 + wt, data = mtcars)
@@ -120,6 +169,36 @@ segments(wt, mpg, wt, pre, col="red")
 
 ```
 
+What does our model think?
+========================================================
+incremental: true
+type: lineheight
 
+$$\large y = \beta_0 + \beta_1 * x$$
+
+```{r, message = FALSE} 
+model = lm(mpg ~ 1 + wt, data = mtcars)
+  
+summary(model)
+```
+
+How much does our model miss?
+========================================================
+incremental: true
+type: lineheight
+
+$$\large y = \beta_0 + \beta_1 * x$$
+
+```{r, message = FALSE} 
+model = lm(mpg ~ 1 + wt, data = mtcars)
+
+d$predicted <- predict(model)   # Save the predicted values
+d$residuals <- residuals(model) # Save the residual values
+
+# Quick look at the actual, predicted, and residual values
+library(tidyverse)
+d %>% select(mpg, predicted, residuals) %>% sample_n(10)
+
+```
 
 
