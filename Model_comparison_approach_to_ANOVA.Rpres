@@ -31,18 +31,12 @@ Let's get some data
 incremental: true
 type: lineheight
 
-Fitting a straight line through data
+Here is some fascinating data on properties of cars
 
-```{r, message = FALSE, fig.width = 8, fig.heigth = 4, fig.align = "center"} 
-d <- mtcars
-fit <- lm(mpg ~ hp, data = d)
-
-d$predicted <- predict(fit)   # Save the predicted values
-d$residuals <- residuals(fit) # Save the residual values
-
-# Quick look at the actual, predicted, and residual values
-library(dplyr)
-d %>% select(mpg, predicted, residuals) %>% head()
+```{r, message = FALSE} 
+attach(mtcars)
+d = mtcars
+head (d)
 ```
 
 Let's plot the data
@@ -50,50 +44,82 @@ Let's plot the data
 incremental: true
 type: lineheight
 
-Two continuous variables
+A simple scatterplot
 
-```{r, message = FALSE, fig.width = 8, fig.heigth = 4, fig.align = "center"} 
-library(ggplot2)
-ggplot(d, aes(x = hp, y = mpg)) +
-  geom_point() +
-  theme_bw()  # Add theme for cleaner look
-
+```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"}  
+plot(wt, mpg, main="Fascinating data", xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
 ```
 
-Fitting a line
+Fitting the simplest line
 ========================================================
 incremental: true
 type: lineheight
 
 Fitting a straight line through data
 
-```{r, message = FALSE, fig.width = 8, fig.heigth = 4, fig.align = "center"} 
-library(ggplot2)
-ggplot(d, aes(x = hp, y = mpg)) +
-  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +  # Plot regression slope
-  #geom_segment(aes(xend = hp, yend = predicted), alpha = .2) +  # alpha to fade lines
-  geom_point() +
-  #geom_point(aes(y = predicted), shape = 1) +
-  theme_bw()  # Add theme for cleaner look
+```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
+model = lm(mpg ~ 1, data = mtcars)
+  
+plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
 
+abline(model, col="red") # plot the mean
 ```
 
-How much lies around the line?
+How many lies around the line?
 ========================================================
 incremental: true
 type: lineheight
 
 Residuals
 
-```{r, message = FALSE, fig.width = 8, fig.heigth = 4, fig.align = "center"} 
-library(ggplot2)
-ggplot(d, aes(x = hp, y = mpg)) +
-  geom_smooth(method = "lm", se = FALSE, color = "lightgrey") +  # Plot regression slope
-  geom_segment(aes(xend = hp, yend = predicted), alpha = .2) +  # alpha to fade lines
-  geom_point() +
-  geom_point(aes(y = predicted), shape = 1) +
-  theme_bw()  # Add theme for cleaner look
+```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
+model = lm(mpg ~ 1, data = mtcars)
+  
+plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+abline(model, col="red") # plot the mean
+
+# calculate residuals and predicted values
+res = signif(residuals(model), 5)
+pre = predict(model) # plot distances between points and the regression line
+segments(wt, mpg, wt, pre, col="red")
 
 ```
+
+Fitting the second simplest line
+========================================================
+incremental: true
+type: lineheight
+
+Fitting a straight line through data
+
+```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
+model = lm(mpg ~ 1 + wt, data = mtcars)
+  
+plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+abline(model, col="red") # plot the mean
+
+```
+
+How many lies around the line?
+========================================================
+incremental: true
+type: lineheight
+
+Residuals
+
+```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
+model = lm(mpg ~ 1 + wt, data = mtcars)
+  
+plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+abline(model, col="red") # plot the mean
+
+# calculate residuals and predicted values
+res = signif(residuals(model), 5)
+pre = predict(model) # plot distances between points and the regression line
+segments(wt, mpg, wt, pre, col="red")
+
+```
+
+
 
 
