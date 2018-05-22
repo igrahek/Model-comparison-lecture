@@ -8,14 +8,64 @@ width: 1600
 height: 1000
 css: css-file.css
 
-Models are full of lines
+Contents
 ========================================================
 incremental: true
 type: lineheight
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+- Model comparison approach to data analysis
+- Regression 101 (2 continuous variables)
+- Regression with categorical variables
+- Model comparison approach to ANOVA
+
+The standard way
+========================================================
+incremental: true
+type: lineheight
+
+<div align = "center" style="float: bottom;">
+<img src = "cookbook.jpg" >
+</div>
+
+<div class="notes">
+This is my *note*.
+
+- IF/THEN cookbook
+- IF 1 categorical AND 1 interval THEN t-test
+- IF 2 interval THEN regression
+
+</div>
+
+The model comparison approach
+========================================================
+incremental: true
+type: lineheight
+
+- Most of the analyses can be viewed as linear regressions
+- t-test: two-level categorical variable as the predictor
+- ANOVA: three-or-more-level categorical variable as the predictor
+- Regressions all the way down
+
+<div align = "center" style="float: bottom;">
+<img src = "elephants.jpg" width = 600 height = 600>
+</div>
+
+- Good introductions: 
+    - Judd, McClelland, & Ryan (1989; 2017 - 3rd edition)
+    - McElreath (2015)
+    
+What is a model?
+========================================================
+incremental: true
+type: lineheight
+
+<div align = "center" style="float: bottom;">
+<img src = "pasta.jpg" width = 600 height = 600>
+</div>
+
+- Compact description of data
+- Each of the cookbook procedures contains off-the-shelf models hidden inside
+- Here we will try to open these pasta machines 
 
 Simple regression
 ========================================================
@@ -201,4 +251,116 @@ d %>% select(mpg, predicted, residuals) %>% sample_n(10)
 
 ```
 
+Models with categorical predicors
+========================================================
+incremental: true
+type: lineheight
+
+- Buliding a regression with a categorical predictor
+- This is the case of a t-test
+
+Let's get take the data from the first lecture
+========================================================
+incremental: true
+type: lineheight
+
+Beer vs. water & positive vs. negative dataset
+
+```{r, message = FALSE} 
+attach(mtcars)
+d = mtcars
+head (d)
+```
+
+Let's plot the data
+========================================================
+incremental: true
+type: lineheight
+
+A simple scatterplot
+
+```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"}  
+plot(wt, mpg, main="Fascinating data", xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+```
+
+Contrast and dummy coding
+========================================================
+incremental: true
+type: lineheight
+
+Intercept is the average of one group vs. Intercept is the average of both groups
+
+```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"}  
+plot(wt, mpg, main="Fascinating data", xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+```
+
+Fitting our model
+========================================================
+incremental: true
+type: lineheight
+
+$$\large y = \beta_0 + \beta_1 * x$$
+
+```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
+attach(mtcars)
+d = mtcars
+
+model = lm(mpg ~ 1 + wt, data = mtcars)
+  
+plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+abline(model, col="red") # plot the mean
+
+```
+
+How many lies around the line?
+========================================================
+incremental: true
+type: lineheight
+
+$$\large y = \beta_0 + \beta_1 * x$$
+
+```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
+model = lm(mpg ~ 1 + wt, data = mtcars)
+  
+plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+abline(model, col="red") # plot the mean
+
+# calculate residuals and predicted values
+res = signif(residuals(model), 5)
+pre = predict(model) # plot distances between points and the regression line
+segments(wt, mpg, wt, pre, col="red")
+
+```
+
+What does our model think?
+========================================================
+incremental: true
+type: lineheight
+
+$$\large y = \beta_0 + \beta_1 * x$$
+
+```{r, message = FALSE} 
+model = lm(mpg ~ 1 + wt, data = mtcars)
+  
+summary(model)
+```
+
+How much does our model miss?
+========================================================
+incremental: true
+type: lineheight
+
+$$\large y = \beta_0 + \beta_1 * x$$
+
+```{r, message = FALSE} 
+model = lm(mpg ~ 1 + wt, data = mtcars)
+
+d$predicted <- predict(model)   # Save the predicted values
+d$residuals <- residuals(model) # Save the residual values
+
+# Quick look at the actual, predicted, and residual values
+library(tidyverse)
+d %>% select(mpg, predicted, residuals) %>% sample_n(10)
+
+```
 
