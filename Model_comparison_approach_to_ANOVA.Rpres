@@ -18,6 +18,11 @@ type: lineheight
 - Regression with categorical variables
 - Model comparison approach to ANOVA
 
+```{r setup, include = FALSE}
+library(tidyverse)
+set.seed(9992)
+```
+
 The standard way
 ========================================================
 incremental: true
@@ -27,14 +32,10 @@ type: lineheight
 <img src = "cookbook.jpg" >
 </div>
 
-<div class="notes">
-This is my *note*.
+IF/THEN cookbook
+IF 1 categorical AND 1 interval THEN t-test
+IF 2 interval THEN regression
 
-- IF/THEN cookbook
-- IF 1 categorical AND 1 interval THEN t-test
-- IF 2 interval THEN regression
-
-</div>
 
 The model comparison approach
 ========================================================
@@ -45,15 +46,10 @@ type: lineheight
 - t-test: two-level categorical variable as the predictor
 - ANOVA: three-or-more-level categorical variable as the predictor
 - Regressions all the way down
-
-<div align = "center" style="float: bottom;">
-<img src = "elephants.jpg" width = 600 height = 600>
-</div>
-
 - Good introductions: 
     - Judd, McClelland, & Ryan (1989; 2017 - 3rd edition)
     - McElreath (2015)
-    
+
 What is a model?
 ========================================================
 incremental: true
@@ -63,31 +59,30 @@ type: lineheight
 <img src = "pasta.jpg" width = 600 height = 600>
 </div>
 
-- Compact description of data
-- Each of the cookbook procedures contains off-the-shelf models hidden inside
-- Here we will try to open these pasta machines 
+Compact description of data
+Each of the cookbook procedures contains off-the-shelf models hidden inside
+Here we will try to open these pasta machines 
 
 Simple regression
 ========================================================
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0$$
+$$\large y = \alpha$$
 
-$$\large y = \beta_0 + \beta_1 * x$$
+$$\large y = \alpha + \beta_1 * x$$
 
 Parameters of a linear model: 
-- Intercept  
-- Slope
+  - Intercept  
+  - Slope
 
 Our first goal is always to estimate parameters
-
 How do we write that in R?
 
 ```{r, message = FALSE, eval=FALSE} 
-model1 = lm(y ~ 1)
+model1 <- lm(y ~ 1, data = d)
 
-model12 = lm(y ~ 1 + x)
+model12 <- lm(y ~ 1 + x, data = d)
 ```
 
 Let's get some data
@@ -99,7 +94,7 @@ Here is some fascinating data on properties of cars
 
 ```{r, message = FALSE} 
 attach(mtcars)
-d = mtcars
+d <- mtcars
 head (d)
 ```
 
@@ -110,8 +105,11 @@ type: lineheight
 
 A simple scatterplot
 
-```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"}  
-plot(wt, mpg, main="Fascinating data", xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+```{r eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 4, fig.height = 4}  
+# Basic scatter plot
+ggplot(mtcars, aes(x=wt, y=mpg)) + 
+  geom_point() + # Data points
+  theme_bw(base_size = 20) # Theme
 ```
 
 Fitting the simplest line 
@@ -119,34 +117,57 @@ Fitting the simplest line
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0$$
+$$\large y = \alpha$$
 
-```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
-model = lm(mpg ~ 1, data = mtcars)
-  
-plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+```{r eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 4, fig.height = 4}  
+model <- lm(mpg ~ 1, data = mtcars)
 
-abline(model, col="red") # plot the mean
+# Basic scatter plot
+ggplot(mtcars, aes(x=wt, y=mpg)) + 
+  geom_point() + # Data points
+   # Regression line
+  labs(x="Car Weight", y = "Miles Per Gallon") + # Name the axes
+  theme_bw(base_size = 20) +
+  geom_smooth(method = lm, se=FALSE, formula = y ~ 1)# Theme for the plot
+
 ```
 
-How many lies around the line? 
+How bad is the line? 
 ========================================================
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0$$
+$$\large y = \alpha$$
 
-```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
-model = lm(mpg ~ 1, data = mtcars)
+```{r eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 4, fig.height = 4}  
+
+model <- lm(mpg ~ 1, data = mtcars)
   
-plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
-abline(model, col="red") # plot the mean
+d$predicted <- predict(model)   # Save the predicted values
+d$residuals <- residuals(model) # Save the residual values
 
-# calculate residuals and predicted values
-res = signif(residuals(model), 5)
-pre = predict(model) # plot distances between points and the regression line
-segments(wt, mpg, wt, pre, col="red")
+# Quick look at the actual, predicted, and residual values
+library(tidyverse)
+d %>% select(mpg, predicted, residuals) %>% sample_n(10)
+```
+How bad is the line? 
+========================================================
+incremental: true
+type: lineheight
 
+$$\large y = \alpha$$
+
+```{r eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 4, fig.height = 4}  
+model <- lm(mpg ~ 1, data = mtcars)
+  
+ggplot(d, aes(x = wt, y = mpg)) +
+  geom_smooth(method = lm, se = FALSE, formula = y ~ 1, color = "black") +  # Regression line
+  geom_segment(aes(xend = wt, yend = predicted), alpha = .2) +  # Connect predicted and actual values
+  geom_point() + # Data points
+  geom_point(aes(y = predicted), shape = 1) + #Points for values predicted by the model
+  xlab("Car Weight") + # X-axis
+  ylab("Miles Per Gallon") + # Y-axis
+  theme_bw(base_size = 20)  # Theme for the plot
 ```
 
 What does our model think? 
@@ -154,31 +175,12 @@ What does our model think?
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0$$
+$$\large y = \alpha$$
 
 ```{r, message = FALSE} 
 model = lm(mpg ~ 1, data = mtcars)
   
 summary(model)
-```
-
-How much does our model miss? 
-========================================================
-incremental: true
-type: lineheight
-
-$$\large y = \beta_0$$
-
-```{r, message = FALSE} 
-model = lm(mpg ~ 1, data = mtcars)
-
-d$predicted <- predict(model)   # Save the predicted values
-d$residuals <- residuals(model) # Save the residual values
-
-# Quick look at the actual, predicted, and residual values
-library(tidyverse)
-d %>% select(mpg, predicted, residuals) %>% sample_n(10)
-
 ```
 
 Fitting the second simplest line
@@ -186,45 +188,63 @@ Fitting the second simplest line
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0 + \beta_1 * x$$
+$$\large y = \alpha + \beta_1 * x$$
 
-```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
+```{r eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 4, fig.height = 4}  
 attach(mtcars)
-d = mtcars
-
-model = lm(mpg ~ 1 + wt, data = mtcars)
-  
-plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
-abline(model, col="red") # plot the mean
+# Basic scatter plot
+ggplot(mtcars, aes(x=wt, y=mpg)) + 
+  geom_point() + # Data points
+   # Regression line
+  labs(x="Car Weight", y = "Miles Per Gallon") + # Name the axes
+  theme_bw(base_size = 20) +
+  geom_smooth(method = lm, se=FALSE, color = "black", formula = y ~ 1 + x)# Theme for the plot
 
 ```
 
-How many lies around the line?
+How bad is the line? 
 ========================================================
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0 + \beta_1 * x$$
+$$\large y = \alpha$$
 
-```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
-model = lm(mpg ~ 1 + wt, data = mtcars)
+```{r eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 4, fig.height = 4}  
+model <- lm(mpg ~ 1 + wt, data = mtcars)
   
-plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
-abline(model, col="red") # plot the mean
+d$predicted <- predict(model)   # Save the predicted values
+d$residuals <- residuals(model) # Save the residual values
 
-# calculate residuals and predicted values
-res = signif(residuals(model), 5)
-pre = predict(model) # plot distances between points and the regression line
-segments(wt, mpg, wt, pre, col="red")
-
+# Quick look at the actual, predicted, and residual values
+library(tidyverse)
+d %>% select(mpg, predicted, residuals) %>% sample_n(10)
 ```
-
-What does our model think?
+How bad is the line? 
 ========================================================
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0 + \beta_1 * x$$
+$$\large y = \alpha$$
+
+```{r eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 4, fig.height = 4}  
+model <- lm(mpg ~ 1 + wt, data = mtcars)
+  
+ggplot(d, aes(x = wt, y = mpg)) +
+  geom_smooth(method = lm, se = FALSE, color = "black", formula = y ~ 1 + x) +  # Regression line
+  geom_segment(aes(xend = wt, yend = predicted), alpha = .2) +  # Connect predicted and actual values
+  geom_point() + # Data points
+  geom_point(aes(y = predicted), shape = 1) + #Points for values predicted by the model
+  xlab("Car Weight") + # X-axis
+  ylab("Miles Per Gallon") + # Y-axis
+  theme_bw()  # Theme for the plot
+```
+
+What does our model think? 
+========================================================
+incremental: true
+type: lineheight
+
+$$\large y = \alpha$$
 
 ```{r, message = FALSE} 
 model = lm(mpg ~ 1 + wt, data = mtcars)
@@ -232,26 +252,7 @@ model = lm(mpg ~ 1 + wt, data = mtcars)
 summary(model)
 ```
 
-How much does our model miss?
-========================================================
-incremental: true
-type: lineheight
-
-$$\large y = \beta_0 + \beta_1 * x$$
-
-```{r, message = FALSE} 
-model = lm(mpg ~ 1 + wt, data = mtcars)
-
-d$predicted <- predict(model)   # Save the predicted values
-d$residuals <- residuals(model) # Save the residual values
-
-# Quick look at the actual, predicted, and residual values
-library(tidyverse)
-d %>% select(mpg, predicted, residuals) %>% sample_n(10)
-
-```
-
-Models with categorical predicors
+Models with categorical predictors
 ========================================================
 incremental: true
 type: lineheight
@@ -259,7 +260,7 @@ type: lineheight
 - Buliding a regression with a categorical predictor
 - This is the case of a t-test
 
-Let's get take the data from the first lecture
+- Let's get take the data from the first lecture
 ========================================================
 incremental: true
 type: lineheight
@@ -267,8 +268,7 @@ type: lineheight
 Beer vs. water & positive vs. negative dataset
 
 ```{r, message = FALSE} 
-attach(mtcars)
-d = mtcars
+d = read.csv(file = "C:/Users/igrahek/Documents/Conferences/Bayes specialist course, Gent, 2018/Model comparison lecture/data_attitude.csv")
 head (d)
 ```
 
@@ -279,8 +279,21 @@ type: lineheight
 
 A simple scatterplot
 
-```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"}  
-plot(wt, mpg, main="Fascinating data", xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+```{r, message = FALSE, fig.width = 8, fig.heigth = 4, fig.align = "center"}  
+library(tidyverse)
+ggplot(d, aes(x = drink, y = ratings, color = imagery)) +
+    geom_point()  #+
+    #geom_line(aes(group = imagery)) #+
+    #geom_smooth(method=lm, se=FALSE) 
+
+d %>%
+    ggplot(aes(x = drink, y = ratings) ) +
+    # adding individual data points
+    geom_dotplot(binaxis = "y", stackdir = "center", alpha = 0.5, dotsize = 0.5) +
+    # adding model predictions
+    
+    theme_bw(base_size = 20)
+
 ```
 
 Contrast and dummy coding
@@ -290,77 +303,56 @@ type: lineheight
 
 Intercept is the average of one group vs. Intercept is the average of both groups
 
-```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"}  
-plot(wt, mpg, main="Fascinating data", xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
-```
-
 Fitting our model
 ========================================================
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0 + \beta_1 * x$$
+$$\large y = \alpha + \beta_1 * x$$
 
-```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
-attach(mtcars)
-d = mtcars
+```{r, message = FALSE, fig.width = 8, fig.heigth = 4, fig.align = "center"}  
+model = lm(ratings ~ 1 + drink, data = d)
 
-model = lm(mpg ~ 1 + wt, data = mtcars)
-  
-plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
-abline(model, col="red") # plot the mean
-
+d %>%
+    # predictions of model 1
+    mutate(
+        p = predict(model, interval = "confidence", level = 0.90)[, 1],
+        lwr = predict(model, interval = "confidence", level = 0.90)[, 2],
+        upr = predict(model, interval = "confidence", level = 0.90)[, 3]
+        ) %>%
+    ggplot(aes(x = drink, y = ratings) ) +
+    # adding individual data points
+    geom_dotplot(binaxis = "y", stackdir = "center", alpha = 0.5, dotsize = 0.5) +
+    # adding model predictions
+    geom_point(aes(y = p), shape = 18, size = 10, show.legend = FALSE) +
+    geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0, size = 2, show.legend = FALSE) +
+    geom_line(aes(y = p, group = imagery), size = 2, show.legend = FALSE) +
+   theme_bw(base_size = 20)
 ```
 
-How many lies around the line?
+How bad is the line? 
 ========================================================
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0 + \beta_1 * x$$
+$$\large y = \alpha + \beta_1 * x$$
 
-```{r, message = FALSE, fig.width = 16, fig.heigth = 8, fig.align = "center"} 
-model = lm(mpg ~ 1 + wt, data = mtcars)
-  
-plot(wt, mpg, main="Fascinating data",xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
-abline(model, col="red") # plot the mean
-
-# calculate residuals and predicted values
-res = signif(residuals(model), 5)
-pre = predict(model) # plot distances between points and the regression line
-segments(wt, mpg, wt, pre, col="red")
-
-```
 
 What does our model think?
 ========================================================
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0 + \beta_1 * x$$
+$$\large y = \alpha + \beta_1 * x$$
 
-```{r, message = FALSE} 
-model = lm(mpg ~ 1 + wt, data = mtcars)
-  
-summary(model)
-```
 
 How much does our model miss?
 ========================================================
 incremental: true
 type: lineheight
 
-$$\large y = \beta_0 + \beta_1 * x$$
+$$\large y = \alpha + \beta_1 * x$$
 
-```{r, message = FALSE} 
-model = lm(mpg ~ 1 + wt, data = mtcars)
 
-d$predicted <- predict(model)   # Save the predicted values
-d$residuals <- residuals(model) # Save the residual values
 
-# Quick look at the actual, predicted, and residual values
-library(tidyverse)
-d %>% select(mpg, predicted, residuals) %>% sample_n(10)
-
-```
 
